@@ -33,6 +33,10 @@ now you can:
 3. 可以將音軌與影片合併
 4. 可以將檔案轉換為 影片:[ mkv / webm / mp4 / avi / flv / mov / ts ] 音軌:[ ogg / mp3 ]
 
-# HOW TO USE
+# exe download 已打包程式下載
+ https://drive.google.com/file/d/1r54anYFI3Bc4WlMyvbP1wwmXioSep3Aq/view?usp=share_link
+# HOW TO PACK?
+
+# HOW TO USE .exe
 
 
