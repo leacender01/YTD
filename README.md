@@ -1,7 +1,10 @@
 # YTD
 youtube downloader
 
-
+i am vtuber fans but my subscribe sudden stream then delet the stream very often
+so i make this to kepp the stream when i was sleep!!
+oh BTW she is a taiwan vtuber here is the link 
+https://www.youtube.com/channel/UCeeUqiYJFwJSuFkfxHKwASQ
 
 this work on win10 and need chrome!!
 
