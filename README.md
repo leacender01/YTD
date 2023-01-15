@@ -28,7 +28,7 @@ need download [ffmpeg](https://github.com/BtbN/FFmpeg-Builds/releases/download/l
 ## English
 
 
-this is a python base win10 app for monitor the youtube chennel you add
+this is a python base win10/win11 app for monitor the youtube chennel you add
 
 now you can:
 
@@ -40,7 +40,7 @@ now you can:
 ## 中文
 
 
-這是一個給win10的YT頻道監控下載程式
+這是一個給win10/win11的YT頻道監控下載程式
 
 現在有的功能:
 
