@@ -50,7 +50,7 @@ now you can:
 4. 可以將檔案轉換為 影片:[ mkv / webm / mp4 / avi / flv / mov / ts ] 音軌:[ ogg / mp3 ]
 
 # exe Download (已打包程式下載)
- https://drive.google.com/file/d/1r54anYFI3Bc4WlMyvbP1wwmXioSep3Aq/view?usp=share_link
+ https://drive.google.com/file/d/1Lu4t-FxI6qowB4B_BlwQf27-bVMnb-hA/view?usp=sharing
 # HOW TO PACK?(如何打包)
 use cmd and execute the command(在環境下cmd使用以下指令)
 ```
