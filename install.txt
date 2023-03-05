@@ -1,1 +1,3 @@
 pyinstaller --name=YTD --icon=icon.ico --upx-exclude=vcruntime140.dll --noconfirm --hidden-import=Cryptodome --hidden-import=mutagen --hidden-import=brotli --hidden-import=certifi --hidden-import=websockets --collect-submodules=websockets --exclude-module=youtube_dl --exclude-module=youtube_dlc --exclude-module=test --exclude-module=ytdlp_plugins --exclude-module=devscripts -w .\main.py
+
+然後記得把yt-dlp devscripts ffmpeg-master-latest-win64-gpl丟進去dist/YTD

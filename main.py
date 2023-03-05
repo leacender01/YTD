@@ -5,19 +5,33 @@ Created on Fri Sep 16 18:51:19 2022
 @author: arnold
 """
 import errno
-import os
-import platform
 import subprocess
 import sys
 import time
-import warnings
+import selenium
+import yt_dlp
 
+from os import system as CMDsystem
+from re import compile as recompile
+from warnings import warn as SysWarn
+from platform import system as osSystem
+from os.path import basename,abspath,join
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common import utils
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from selenium.webdriver.chrome import service, webdriver, remote_connection
+from selenium.webdriver.common.by import By
+from selenium import webdriver as swebdriver
 from webdriver_manager.chrome import ChromeDriverManager
+from bs4 import BeautifulSoup
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QDialog, QApplication
+from subprocess import PIPE, Popen,STDOUT
+from home import Ui_HomePage
+from Searching import Ui_SearchingPage
+from Command import Ui_Command
 #修正exe裡小黑窗出現問題
+#隱藏chromeDriver.exe
 class HiddenChromeService(service.Service):
 
     def start(self):
@@ -25,7 +39,7 @@ class HiddenChromeService(service.Service):
             cmd = [self.path]
             cmd.extend(self.command_line_args())
 
-            if platform.system() == 'Windows':
+            if osSystem() == 'Windows':
                 info = subprocess.STARTUPINFO()
                 info.dwFlags = subprocess.STARTF_USESHOWWINDOW
                 info.wShowWindow = 0  # SW_HIDE (6 == SW_MINIMIZE)
@@ -34,7 +48,7 @@ class HiddenChromeService(service.Service):
 
             self.process = subprocess.Popen(
                 cmd, env=self.env,
-                close_fds=platform.system() != 'Windows',
+                close_fds=osSystem() != 'Windows',
                 startupinfo=info,
                 stdout=self.log_file,
                 stderr=self.log_file,
@@ -45,19 +59,19 @@ class HiddenChromeService(service.Service):
             if err.errno == errno.ENOENT:
                 raise WebDriverException(
                     "'%s' executable needs to be in PATH. %s" % (
-                        os.path.basename(self.path), self.start_error_message)
+                        basename(self.path), self.start_error_message)
                 )
             elif err.errno == errno.EACCES:
                 raise WebDriverException(
                     "'%s' executable may have wrong permissions. %s" % (
-                        os.path.basename(self.path), self.start_error_message)
+                        basename(self.path), self.start_error_message)
                 )
             else:
                 raise
         except Exception as e:
             raise WebDriverException(
                 "Executable %s must be in path. %s\n%s" % (
-                    os.path.basename(self.path), self.start_error_message,
+                    basename(self.path), self.start_error_message,
                     str(e)))
         count = 0
         while True:
@@ -75,8 +89,7 @@ class HiddenChromeWebDriver(webdriver.WebDriver):
                 desired_capabilities=None, service_log_path=None,
                 chrome_options=None, keep_alive=True):
         if chrome_options:
-            warnings.warn('use options instead of chrome_options',
-                        DeprecationWarning, stacklevel=2)
+            SysWarn('使用自訂選項而非chrome預設',DeprecationWarning, stacklevel=2)
             options = chrome_options
 
         if options is None:
@@ -107,36 +120,25 @@ class HiddenChromeWebDriver(webdriver.WebDriver):
             self.quit()
             raise
         self._is_remote = False
-
-from bs4 import BeautifulSoup
-import selenium
-from selenium.webdriver.common.by import By
-from selenium import webdriver
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QDialog, QApplication
-import yt_dlp
-from subprocess import PIPE, Popen,STDOUT
-
-from home import Ui_HomePage
-from Searching import Ui_SearchingPage
-from Command import Ui_Command
-
+        
+        
+#監控YT並下達下載指令
 # 需要chromedriver.exe 放在同一資料夾
 class LiveMonitor(object):
     def __init__(self, os_type="win"):
-        option = webdriver.ChromeOptions()
+        option = swebdriver.ChromeOptions()
         option.add_argument('headless')
         option.add_argument('blink-settings=imagesEnabled=false')
         option.add_argument('--disable-dev-shm-usage')
         # 環境加載 找範例的
         if os_type == "win":
-            self.driver = HiddenChromeWebDriver(executable_path=ChromeDriverManager().install(),chrome_options=option)
+            self.driver = HiddenChromeWebDriver(chrome_options=option)
         if os_type == "linux":
-            self.driver = webdriver.Chrome("./chromedriver", options=option)
+            self.driver = swebdriver.Chrome(ChromeDriverManager().install(), options=option)
         if os_type == "mac":
             raise BaseException
         self.driver.implicitly_wait(3)
-        print(os.path.abspath(r"./chromedriver"))
+        #SysWarn(abspath(r"./chromedriver"))
     # 利用關鍵字抓取正在直播
     # 回傳list 名稱 + 網址
     # 沒有回傳 None 
@@ -147,12 +149,12 @@ class LiveMonitor(object):
 
     def liveSearch(self, channel_url):
         self.driver.get(channel_url)
-        print("..............搜尋直播中..............")
+        #SysWarn("..............搜尋直播中..............",DeprecationWarning, stacklevel=2)
         liveXpath = "//*[@id='contents' and @class='style-scope ytd-channel-featured-content-renderer']"
         try:
             t = self.driver.find_element(By.XPATH, (liveXpath))
         except selenium.common.exceptions.NoSuchElementException:
-            print("目前沒有直播")
+            #SysWarn("目前沒有直播",DeprecationWarning, stacklevel=2)
             return None
         return t.get_attribute("innerHTML")  
         
@@ -179,13 +181,13 @@ class LiveMonitor(object):
         # 到預計直播網頁 利用參數抓取有無直播 無直播會列出所有影片
         #self.driver.get(channel_url + "/videos?view=2&sort=dd&live_view=502&shelf_id=3")
         self.driver.get(channel_url)
-        print("..............搜尋預計直播中..............")
+        #SysWarn("..............搜尋預計直播中..............",DeprecationWarning, stacklevel=2)
         #liveXpath = "//*[@id='items' and @class='style-scope ytd-grid-renderer']"
         liveXpath = "//*[@id='contents' and @class='style-scope ytd-shelf-renderer']"
         try:
             t = self.driver.find_element(By.XPATH, (liveXpath))
         except selenium.common.exceptions.NoSuchElementException:
-            print("目前沒有預計直播")
+            #SysWarn("目前沒有預計直播",DeprecationWarning, stacklevel=2)
             return None
         return t.get_attribute('innerHTML')
 
@@ -215,7 +217,7 @@ class LiveMonitor(object):
             name = t.get_attribute('textContent')
             
         except selenium.common.exceptions.NoSuchElementException:
-            print("找不到名字")
+            #SysWarn("找不到名字",DeprecationWarning, stacklevel=2)
             return None
         return  name
         
@@ -236,6 +238,7 @@ class SearchThread(QtCore.QThread):
         self.runs = True
     def stopsearching(self):
         self.runs = False
+        self.lm.close()
     def run(self):
         targetlist = []
         while self.runs:
@@ -243,19 +246,18 @@ class SearchThread(QtCore.QThread):
                 inlist = 0
                 for old in targetlist:
                     if old == k[1]: #重複跳過
-                        print("已重複    !!!!!!!!!!!!!!")
-                        print(k[1]," 名稱:",k[0])
+                        #SysWarn("已重複    !!!!!!!!!!!!!!",DeprecationWarning, stacklevel=2)
+                        #SysWarn(k[1]," 名稱:",k[0],DeprecationWarning, stacklevel=2)
                         inlist = 1
                         break
     
                 if inlist == 0 :#只處理不重複
-                    print(k[0])
-                    print(k[1])
+                    #SysWarn(k[0],DeprecationWarning, stacklevel=2)
+                    #SysWarn(k[1],DeprecationWarning, stacklevel=2)
                     if len(k[1]) > 10 :
                         self.signal_str_str.emit(self.savepath,f"https://www.youtube.com{k[1]}")
                         targetlist.append(k[1])
             time.sleep(57)
-        self.lm.close()
 #下載影片子程序      
 class urlThread(QtCore.QThread):
     url = 'unknown'
@@ -269,8 +271,8 @@ class urlThread(QtCore.QThread):
         self.index = index-1
         self.stype = stype
         self.urlpath=urlpath
-        print(self)
-        print('test')
+        #SysWarn(self,DeprecationWarning, stacklevel=2)
+        #SysWarn('test',DeprecationWarning, stacklevel=2)
 
     def run(self):
         
@@ -285,20 +287,30 @@ class urlThread(QtCore.QThread):
             'sleep_interval_requests':1,
             'live_from_start':True,
             'cookiesfrombrowser':('chrome', ),
-            'ffmpeg_location':os.path.join(os.path.abspath(r"./"),r"ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe"),
+            'ffmpeg_location':join(abspath(r"./"),r"ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe"),
             'extractor_retries':20,
             'retries':20,
             'file_access_retries':10,
             'progress_hooks': [self.downloadinginfo]
         }
-        print(os.path.join(os.path.abspath(r"./"),r"ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe"))
+        #SysWarn(join(abspath(r"./"),r"ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe"),DeprecationWarning, stacklevel=2)
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download(self.url)
     def downloadinginfo(self,d):
         if d['status'] == 'downloading':
-            self.signal_int_str.emit(self.index, f"進度:{d['_percent_str']} \n剩餘時間:{d['_eta_str']} \nnow downloading:{os.path.basename(d['filename'])}")
+            dltype = d['_eta_str'].find("Unknown")
+            if self.stype=='bv*+ba/b':
+                stype = '影片'
+            elif self.stype=='bv':
+                stype = '畫面'
+            elif self.stype=='ba':
+                stype = '音檔'
+            if dltype == -1:
+                self.signal_int_str.emit(self.index, f"時間:{time.strftime('%H:%M:%S', time.gmtime(d['elapsed']))} 進度:{d['_percent_str']} \n格式:{stype} 剩餘時間:{d['_eta_str']} \nnow downloading:{basename(d['filename'])}")
+            else:
+                self.signal_int_str.emit(self.index, f"時間:{time.strftime('%H:%M:%S', time.gmtime(d['elapsed']))} 進度:下載中  \n格式:{stype} 剩餘時間:直播中 \nnow downloading:{basename(d['filename'])}")
         elif d['status'] == 'finished':
-            self.signal_int_str.emit(self.index, f"完成下載:{os.path.basename(d['filename'])}")
+            self.signal_int_str.emit(self.index, f"完成下載:{basename(d['filename'])}")
 #刷新用每秒回報子程序
 class threadtime(QtCore.QThread):
     signal_update = QtCore.pyqtSignal()
@@ -332,7 +344,7 @@ class cmd(QtCore.QThread):
         self.runs = False
     def run(self):
         for line in self.process.stdout:
-            #print(line)
+            #SysWarn(line,DeprecationWarning, stacklevel=2)
             self.signal_cmd.emit(line)
         self.signal_cmd.emit("完成操作")
             
@@ -387,10 +399,11 @@ class AddSearchingWindow(QtWidgets.QDialog):
         self.ui.btn_yes.clicked.connect(self.passurl)
     def passurl(self):
         url = self.ui.urlInput.text()
+        #使用正則表達把YT頻道拉出來,YT頻道前面會有@
+        Pattern = r'.*@\w+'
+        url = recompile(Pattern).findall(url)[0]
         
-        for delname in ["/featured","/videos","/playlists","/community","/membership","/channels","/about"]:
-            url = url.replace(delname,"")
-        print(url)
+        SysWarn(url,DeprecationWarning, stacklevel=2)
         self.signal_str.emit(url)
         self.close()
 #主頁面
@@ -434,6 +447,7 @@ class AppWindow(QtWidgets.QMainWindow):
             woker.stopsearching()
         self.updatethread.stopthread2s()
         self.lm1.close()
+        CMDsystem('taskkill /F /IM conhost.exe')
         super().closeEvent(a0)
     #home tab def
     def downLoadURL(self,path,url):
@@ -467,7 +481,7 @@ class AppWindow(QtWidgets.QMainWindow):
         if url not in self.SearchList:
             try:
                 self.SearchNameList.append(self.lm1.getChannelName(url))
-                print(self.SearchNameList)
+                #SysWarn(self.SearchNameList,DeprecationWarning, stacklevel=2)
                 self.SearchList.append(url)
                 self.Searchpath.append(QtWidgets.QFileDialog.getExistingDirectory())
                 self.ui.Slist.clear()
@@ -506,17 +520,17 @@ class AppWindow(QtWidgets.QMainWindow):
             #取得影片檔案名稱(去除副檔名及路徑)
             self.ui.lineEdit_merge_o.setText(".".join(self.ui.lineEdit_merge_v.text().split("/")[-1].rsplit('.')[:-1]))
         else:
-            print(self.ui.lineEdit_merge_o.text())
+            SysWarn(self.ui.lineEdit_merge_o.text(),DeprecationWarning, stacklevel=2)
         if self.ui.lineEdit_merge_v.text() != "" and self.ui.lineEdit_merge_a.text() != "" and self.ui.lineEdit_merge_o.text() != "":
             #do
             path = QtWidgets.QFileDialog.getExistingDirectory()
             cmd=f' -i "{self.ui.lineEdit_merge_v.text()}" -i "{self.ui.lineEdit_merge_a.text()}" -map 0:v:? -map 1:a:? "{path}//{self.ui.lineEdit_merge_o.text()}.mkv"'
-            cmd = os.path.join(os.path.abspath(r"./"),r"ffmpeg-master-latest-win64-gpl\bin\ffmpeg") + cmd
+            cmd = join(abspath(r"./"),r"ffmpeg-master-latest-win64-gpl\bin\ffmpeg") + cmd
             
             self.commandWindow = CommandWindow()
             self.commandWindow.signal_str.emit(cmd)
             self.commandWindow.exec()
-            #print(f"{self.ui.lineEdit_merge_o.text()}.mkv")
+            #SysWarn(f"{self.ui.lineEdit_merge_o.text()}.mkv",DeprecationWarning, stacklevel=2)
             self.ui.lineEdit_merge_o.setText("")
         else:
             msg_box = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Warning,"警告","請輸入影片檔以及音訊檔")
@@ -530,11 +544,11 @@ class AppWindow(QtWidgets.QMainWindow):
             #取得影片檔案名稱(去除副檔名及路徑)
             self.ui.lineEdit_change_o.setText(".".join(self.ui.lineEdit_change_v.text().split("/")[-1].rsplit('.')[:-1]))
         else:
-            print(self.ui.lineEdit_change_o.text())
+            SysWarn(self.ui.lineEdit_change_o.text(),DeprecationWarning, stacklevel=2)
         if self.ui.lineEdit_change_v.text() != "" and self.ui.lineEdit_change_o.text() != "":
             path = QtWidgets.QFileDialog.getExistingDirectory()
             cmd=f' -i "{self.ui.lineEdit_change_v.text()}" "{path}//{self.ui.lineEdit_change_o.text()}.{self.ui.comboBox_change.currentText()}"'
-            cmd = os.path.join(os.path.abspath(r"./"),r"ffmpeg-master-latest-win64-gpl\bin\ffmpeg") + cmd
+            cmd = join(abspath(r"./"),r"ffmpeg-master-latest-win64-gpl\bin\ffmpeg") + cmd
             
             self.commandWindow = CommandWindow()
             self.commandWindow.signal_str.emit(cmd)

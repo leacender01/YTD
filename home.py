@@ -261,7 +261,7 @@ class Ui_HomePage(object):
 
     def retranslateUi(self, HomePage):
         _translate = QtCore.QCoreApplication.translate
-        HomePage.setWindowTitle(_translate("HomePage", "YouTubeStreamDownloader(v2.2.0)"))
+        HomePage.setWindowTitle(_translate("HomePage", "YouTubeStreamDownloader(v2.3.1)"))
         self.btn_urlDL.setText(_translate("HomePage", "下載指定網址影片"))
         self.label_3.setText(_translate("HomePage", "目前錄影下載中"))
         self.btn_add.setText(_translate("HomePage", "增加頻道"))
