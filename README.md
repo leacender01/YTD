@@ -20,7 +20,7 @@ need download [ffmpeg](https://github.com/BtbN/FFmpeg-Builds/releases/download/l
 | beautifulsoup4    | 4.11.1   |
 | ffmpeg            | 4.2.2    |
 | python            | 3.7.13   |
-| yt-dlp            | 2022.9.1 |
+| yt-dlp            | 2023.2.17|
 | selenium          | 3.141.0  |
 | webdriver_manager | 3.8.3    |
 | pyinstaller       | 5.3      |
@@ -50,7 +50,7 @@ now you can:
 4. 可以將檔案轉換為 影片:[ mkv / webm / mp4 / avi / flv / mov / ts ] 音軌:[ ogg / mp3 ]
 
 # exe Download (已打包程式下載)
- https://drive.google.com/file/d/1Lu4t-FxI6qowB4B_BlwQf27-bVMnb-hA/view?usp=sharing
+ https://drive.google.com/file/d/1rNhJ7FjbCv4IDn0qAEEPr9lvofvh8DHr/view?usp=sharing
 # HOW TO PACK?(如何打包)
 use cmd and execute the command(在環境下cmd使用以下指令)
 ```
